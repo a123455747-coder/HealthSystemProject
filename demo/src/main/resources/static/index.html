@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Health Dashboard | 專業健康管理</title>
+    <style>
+        :root { --primary: #4a90e2; --bg: #f0f2f5; }
+        body { font-family: 'PingFang TC', 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h1 { color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; }
+        label { display: block; margin-top: 15px; color: #555; font-size: 14px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-top: 8px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        input:focus { border-color: var(--primary); outline: none; }
+        button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 10px; margin-top: 30px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #357abd; transform: translateY(-2px); }
+        
+        #result-container { margin-top: 30px; text-align: center; padding: 20px; border-radius: 10px; display: none; }
+        .result-text { font-size: 20px; font-weight: 800; }
+        
+        /* 風險等級顏色 */
+        .risk-low { background-color: #d4edda; color: #155724; }
+        .risk-medium { background-color: #fff3cd; color: #856404; }
+        .risk-high { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>健康風險分析</h1>
+    <label>睡眠時數 (hr)</label>
+    <input type="number" id="sleep" placeholder="例如：7">
+    
+    <label>每日步數</label>
+    <input type="number" id="steps" placeholder="例如：8000">
+    
+    <label>心情指數 (1-10)</label>
+    <input type="number" id="mood" placeholder="例如：9">
+    
+    <button id="submitBtn" onclick="submitData()">立即分析</button>
+    <div id="result-container">
+        <div class="result-text" id="result"></div>
+    </div>
+</div>
+
+<script>
+    async function submitData() {
+        const btn = document.getElementById('submitBtn');
+        const resDiv = document.getElementById('result');
+        const resContainer = document.getElementById('result-container');
+        
+        // 1. 輸入驗證 (專業 UX)
+        if(!document.getElementById('sleep').value || !document.getElementById('steps').value) {
+            alert("請填寫完整資訊！");
+            return;
+        }
+
+        btn.innerText = "分析中...";
+        btn.disabled = true;
+
+        const data = {
+            sleepHours: document.getElementById('sleep').value,
+            steps: document.getElementById('steps').value,
+            moodScore: document.getElementById('mood').value
+        };
+        
+        try {
+            const response = await fetch('/health-logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            // 2. 顯示結果並加上專業配色
+            resContainer.style.display = 'block';
+            resDiv.innerText = "風險等級: " + result.riskLevel;
+            
+            resContainer.className = ''; // 重置 class
+            if(result.riskLevel.includes('低')) resContainer.classList.add('risk-low');
+            else if(result.riskLevel.includes('中')) resContainer.classList.add('risk-medium');
+            else resContainer.classList.add('risk-high');
+
+        } catch (e) {
+            resContainer.style.display = 'block';
+            resDiv.innerText = "連線失敗，請檢查後端";
+        } finally {
+            btn.innerText = "立即分析";
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
