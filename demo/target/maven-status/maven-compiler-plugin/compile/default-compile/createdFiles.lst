@@ -1,0 +1,5 @@
+health_systemX\repository\HealthLogRepository.class
+health_systemX\service\RiskAssessmentService.class
+health_systemX\DemoApplication.class
+health_systemX\controller\HealthLogController.class
+health_systemX\model\HealthLog.class
